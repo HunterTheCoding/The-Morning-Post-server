@@ -9,7 +9,11 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: ["https://offline-sharing-service.surge.sh/"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "https://the-morning-posts.surge.sh",
+    ],
     credentials: true,
   })
 );
@@ -24,17 +28,61 @@ const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
-
     deprecationErrors: true,
   },
 });
 
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  console.log(token);
+
+  if (!token) {
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      console.log(err);
+      return res.status(401).send({ message: "unauthorized access" });
+    }
+    req.user = decoded;
+    console.log(req.user);
+    next();
+  });
+};
+
 async function run() {
   try {
-    // Database Collection 
-    const NewsCollection = client.db("NewsDb").collection("AllNews")
+    // Database Collection
+    const NewsCollection = client.db("NewsDb").collection("AllNews");
+    const UserCollection = client.db("NewsDb").collection("Users");
 
     // Use Post Method
+
+    // JsonWebToken
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      // console.log('user token');
+      const token = jwt.sign(user, process.env.NEWS_ACCESS_TOKEN, {
+        expiresIn: "1d",
+      });
+      // console.log('user for token', token,user);
+
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "none",
+        })
+        .send({ success: true });
+    });
+
+    // Logout user 
+    
+    app.post("/logout", async (req, res) => {
+      const user = req.body;
+      console.log("logging out", user);
+      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+    });
 
     //   Create News Section
     app.post("/News", async (req, res) => {
@@ -45,25 +93,49 @@ async function run() {
       // res.send(result);
       res.send(result);
     });
+    //   Create User Section
+    app.post("/users", async (req, res) => {
+      const User = req.body;
+      console.log("auth user", User);
+      const query = { email: User?.email };
+      const Exitinguser = await UserCollection.findOne(query);
+      if (Exitinguser) {
+        console.log("user ase");
+        return res.send({ message: "user already exist", insertedId: null });
+      }
+      const result = await UserCollection.insertOne(User);
+      console.log(result);
+      return res.send(result);
+    });
 
+    // Use Get Method
 
-// Use Get Method
+    app.get("/News/:section?", async (req, res) => {
+      if (req.params.section) {
+        // Dynamic route when req.params.section is truthy
+        const query = {
+          section: req.params.section,
+        };
+        const result = await NewsCollection.find(query).toArray();
+    
+        console.log(",", result);
+        res.send(result);
+      } else {
+        // Fallback route when req.params.section is falsy
+        const result = await NewsCollection.find().toArray();
+        res.send(result);
+      }
+    });
+    
 
+    // Use Delete Method
 
-app.get("/AllNews",  async (req, res) => {
-  const result = await NewsCollection.find().toArray();
-  res.send(result);
-});
-
-// Use Delete Method
-
-
-app.delete("/AllNews/:id", async (req, res) => {
-  const id = req.params.id;
-  const query = { _id: new ObjectId(id) };
-  const result = await NewsCollection.deleteOne(query);
-  res.send(result);
-});
+    app.delete("/AllNews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await NewsCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
