@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const Stripe = require('stripe')(process.env.STRIPE_SECRET_KEY)
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -76,8 +77,13 @@ async function run() {
         .send({ success: true });
     });
 
-    // Logout user 
-    
+    // bookmark add
+app.post('/bookmark',async(req,res)=>{
+const body = req.body;
+
+})
+
+    // Logout user
     app.post("/logout", async (req, res) => {
       const user = req.body;
       console.log("logging out", user);
@@ -108,6 +114,34 @@ async function run() {
       return res.send(result);
     });
 
+    // create donation 
+    app.post("/donation-request", verifyToken, async (req, res) => {
+      const DonationRequest = req.body;
+      console.log(DonationRequest);
+
+      const result = await DonationRequestCollection.insertOne(DonationRequest);
+      console.log(result);
+      return res.send(result);
+    });
+    
+    // implement script payment
+
+    app.post("/create-payment-intent", async (req, res) => {
+      const { amount } = req.body;
+      const amountInCents = parseInt(amount);
+      // Create a PaymentIntent with the order amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amountInCents,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      console.log(paymentIntent);
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    })
+
     // Use Get Method
 
     app.get("/News/:section?", async (req, res) => {
@@ -117,7 +151,7 @@ async function run() {
           section: req.params.section,
         };
         const result = await NewsCollection.find(query).toArray();
-    
+
         console.log(",", result);
         res.send(result);
       } else {
@@ -126,7 +160,6 @@ async function run() {
         res.send(result);
       }
     });
-    
 
     // Use Delete Method
 
