@@ -162,7 +162,7 @@ async function run() {
     });
 
     // donation details add
-    app.post("/donation", verifyToken, async (req, res) => {
+    app.post("/donation",  async (req, res) => {
       const payment = req.body;
       console.log("duifhdhfbhadgahgdwh", payment);
       const result = await DonationRequestCollection.insertOne(payment);
