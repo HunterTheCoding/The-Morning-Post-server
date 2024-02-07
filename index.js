@@ -1,23 +1,24 @@
 const express = require("express");
+require("dotenv").config();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const Stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
-require("dotenv").config();
 const app = express();
 app.use(express.json());
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
+      "http://localhost:5173",
       // "http://localhost:5174",
       "https://the-morning-posts.surge.sh",
     ],
     credentials: true,
   })
 );
+console.log(process.env.STRIPE_SECRET);
 
 app.use(cookieParser());
 // console.log(process.env.DB_USER);
@@ -145,6 +146,7 @@ async function run() {
 
     app.post("/create-payment-intent", async (req, res) => {
       const { amount } = req.body;
+      console.log(req.body);
       const amountInCents = parseInt(amount);
       // Create a PaymentIntent with the order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
