@@ -161,17 +161,16 @@ async function run() {
       });
     });
 
-    // donation details add
-    app.post("/donation",  async (req, res) => {
-      const payment = req.body;
-      console.log("duifhdhfbhadgahgdwh", payment);
-      const result = await DonationRequestCollection.insertOne(payment);
+    // Use Get Method
+
+    // donation details show
+    app.get("/donation/email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await DonationRequestCollection.find(query).toArray;
 
       res.send({ result });
     });
-
-    // Use Get Method
-
     app.get("/News/:section?", async (req, res) => {
       if (req.params.section) {
         // Dynamic route when req.params.section is truthy
@@ -186,6 +185,21 @@ async function run() {
         // Fallback route when req.params.section is falsy
         const result = await NewsCollection.find().toArray();
         res.send(result);
+      }
+    });
+
+    // get bookemark data
+
+    app.get("/Bookmark/email", verifyToken, async (req, res) => {
+      console.log("cheack to email", req?.user?.email);
+      const userEmail = req?.user?.email;
+      const reqEmail = req?.params?.email;
+      if (userEmail === reqEmail) {
+        const query = { email: reqEmail };
+        const UserBookmark = await UserCollection.find(query).toArray();
+        res.send(UserBookmark);
+      } else {
+        return res.status(401).send({ message: "unauthorized User" });
       }
     });
 
