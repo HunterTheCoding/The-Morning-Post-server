@@ -191,17 +191,34 @@ async function run() {
     // get bookemark data
 
     app.get("/Bookmark/email", verifyToken, async (req, res) => {
-      console.log("cheack to email", req?.user?.email);
+      console.log("Checking user email", req?.user?.email);
       const userEmail = req?.user?.email;
       const reqEmail = req?.params?.email;
+      
+      // Ensure the requested email matches the user's email
       if (userEmail === reqEmail) {
-        const query = { email: reqEmail };
-        const UserBookmark = await UserCollection.find(query).toArray();
-        res.send(UserBookmark);
+        try {
+          // Find all bookmarks for the user
+          const query = { email: reqEmail };
+          const userBookmarks = await BookmarksCollection.find(query).toArray();
+    
+          // Extract news IDs from bookmarks
+          const newsIds = userBookmarks.map(bookmark => bookmark.newsid);
+    
+          // Retrieve news data for the bookmarked news IDs
+          const newsQuery = { _id: { $in: newsIds } };
+          const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
+    
+          res.send(bookmarkedNews);
+        } catch (error) {
+          console.error("Error retrieving bookmarked news:", error);
+          res.status(500).send({ message: "Internal server error" });
+        }
       } else {
-        return res.status(401).send({ message: "unauthorized User" });
+        return res.status(401).send({ message: "Unauthorized User" });
       }
     });
+    
 
     // Check Admin
 
