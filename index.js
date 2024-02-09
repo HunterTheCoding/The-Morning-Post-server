@@ -189,7 +189,7 @@ async function run() {
     });
 
     // get bookemark data
-
+    
     app.get("/Bookmark/email", verifyToken, async (req, res) => {
       console.log("Checking user email", req?.user?.email);
       const userEmail = req?.user?.email;
