@@ -202,26 +202,22 @@ async function run() {
       const reqEmail = req?.params?.email;
       
       // Ensure the requested email matches the user's email
-      if (userEmail === reqEmail) {
-        try {
-          // Find all bookmarks for the user
-          const query = { email: reqEmail };
-          const userBookmarks = await BookmarksCollection.find(query).toArray();
-    
-          // Extract news IDs from bookmarks
-          const newsIds = userBookmarks.map(bookmark => bookmark.newsid);
-    
-          // Retrieve news data for the bookmarked news IDs
-          const newsQuery = { _id: { $in: newsIds } };
-          const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
-    
-          res.send(bookmarkedNews);
-        } catch (error) {
-          console.error("Error retrieving bookmarked news:", error);
-          res.status(500).send({ message: "Internal server error" });
-        }
-      } else {
-        return res.status(401).send({ message: "Unauthorized User" });
+      try {
+        // Find all bookmarks for the user
+        const query = { email: reqEmail };
+        const userBookmarks = await BookmarksCollection.find(query).toArray();
+  
+        // Extract news IDs from bookmarks
+        const newsIds = userBookmarks.map(bookmark => bookmark.newsid);
+  
+        // Retrieve news data for the bookmarked news IDs
+        const newsQuery = { _id: { $in: newsIds } };
+        const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
+  
+        res.send(bookmarkedNews);
+      } catch (error) {
+        console.error("Error retrieving bookmarked news:", error);
+        res.status(500).send({ message: "Internal server error" });
       }
     });
     
