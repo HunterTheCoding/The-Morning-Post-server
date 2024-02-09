@@ -90,8 +90,8 @@ async function run() {
             const News = req.body;
             console.log("News ", News);
             const result = await NewsCollection.insertOne(News);
-            // console.log(result);
-            // res.send(result);
+            // console.log(News);
+
             res.send(result);
         });
         //   Create User Section
