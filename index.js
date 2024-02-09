@@ -107,6 +107,12 @@ async function run() {
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
+    app.post("/bookmarks", async (req, res) => {
+      const newsinfo = req.body;
+      // console.log(newsinfo)
+      const result = await BookmarksCollection.insertOne(newsinfo);
+      res.send(result);
+    });
     //   Create News Section
     app.post("/News", async (req, res) => {
       const News = req.body;
@@ -190,8 +196,8 @@ async function run() {
 
     // get bookemark data
 
-    app.get("/Bookmark/email", verifyToken, async (req, res) => {
-      console.log("Checking user email", req?.user?.email);
+    app.get("/Bookmark/:email", async (req, res) => {
+      // console.log("Checking user email", req?.user?.email);
       const userEmail = req?.user?.email;
       const reqEmail = req?.params?.email;
       
@@ -258,12 +264,7 @@ async function run() {
       const result = await NewsCollection.deleteOne(query);
       res.send(result);
     });
-    app.post("/bookmarks", async (req, res) => {
-      const newsinfo = req.body;
-      // console.log(newsinfo)
-      const result = await BookmarksCollection.insertOne(newsinfo);
-      res.send(result);
-    });
+  
     app.get("/singlenews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
