@@ -170,7 +170,7 @@ async function run() {
     // Use Get Method
 
     // donation details show
-    app.get("/donation/email", verifyToken, async (req, res) => {
+    app.get("/donation/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
       const query = { email: email };
       const result = await DonationRequestCollection.find(query).toArray;
