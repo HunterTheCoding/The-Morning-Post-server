@@ -57,6 +57,7 @@ async function run() {
   try {
     // Database Collection
     const NewsCollection = client.db("NewsDb").collection("AllNews");
+    const JobsCollection = client.db("NewsDb").collection("AllJobs");
     const UserCollection = client.db("NewsDb").collection("Users");
     const BookmarksCollection = client.db("NewsDb").collection("BookMark");
     const DonationRequestCollection = client
@@ -173,14 +174,35 @@ async function run() {
     app.get("/donation/:email", verifyToken, async (req, res) => {
       const reqemail = req.params.email;
       const useremail = req.user.email;
-      if (reqemail === useremail){
-
-        const query = { email: reqemail };
-        const result = await DonationRequestCollection.find(query).toArray;
   
-        res.send({ result });
+      console.log(reqemail, useremail);
+  
+      if (reqemail === useremail) {
+          console.log(`function is working`);
+  
+          try {
+              // Query MongoDB collection
+              const query = { "newDonation.email": reqemail };
+              const result = await DonationRequestCollection.find(query).toArray(); // Invoke toArray as a method
+  
+              console.log(result);
+  
+              res.send({ result });
+          } catch (error) {
+              console.error("Error while querying database:", error);
+              res.status(500).send("Internal Server Error");
+          }
+      } else {
+          res.status(403).send("Forbidden"); // User is not authorized to access this email
       }
-    });
+  });
+  //  admin has access all donation list
+  app.get("/Donation", verifyToken, verifyAdmin, async (req, res) => {
+    const result = await DonationRequestCollection.find().toArray();
+    // console.log(result);
+    res.send(result);
+  });
+
     app.get("/News/:section?", async (req, res) => {
       if (req.params.section) {
         // Dynamic route when req.params.section is truthy
@@ -197,6 +219,24 @@ async function run() {
         res.send(result);
       }
     });
+    app.get("/Jobs/:section", async (req, res) => {
+      if (req.params.section) {
+        // Dynamic route when req.params.section is truthy
+        const query = {
+          section: req.params.section,
+        };
+        const result = await JobsCollection.find(query).toArray();
+
+        // console.log(",", result);
+        res.send(result);
+      } else {
+        // Fallback route when req.params.section is falsy
+        const result = await NewsCollection.find().toArray();
+        res.send(result);
+      }
+    });
+
+
 
     // get bookemark data
 
@@ -257,15 +297,77 @@ async function run() {
       res.send(result);
     });
 
-    // Use Delete Method
+//  All section Update Method
 
-    app.delete("/AllNews/:id", async (req, res) => {
+// Bookmark Update
+// app.put("/Blood_Request_update/:id", verifyToken, async (req, res) => {
+//   const id = req.params.id;
+//   const updatedDonation = req.body;
+//   const filter = { _id: new ObjectId(id) };
+//   const options = { upsert: true };
+//   console.log("id", id);
+//   console.log("filter", filter);
+
+//   console.log(updatedDonation);
+
+//   const Donation = {
+//     $set: {
+//       recipient_name: updatedDonation?.recipient_name,
+//       address: updatedDonation?.address,
+//       District: updatedDonation?.District,
+//       Upazila: updatedDonation?.Upazila,
+//       hospital_name: updatedDonation?.hospital_name,
+
+//       donation_date: updatedDonation?.donation_date,
+//       donation_time: updatedDonation?.donation_time,
+//       hospital_name: updatedDonation?.hospital_name,
+//       Request_Message: updatedDonation?.Request_Message,
+
+//       donation_status: updatedDonation?.donation_status,
+//       requester_Name: updatedDonation?.requester_Name,
+//       requester_email: updatedDonation?.requester_email,
+//       requester_photo: updatedDonation?.requester_photo,
+//     },
+//   };
+//   console.log(Donation);
+
+//   const result = await DonationRequestCollection.updateOne(
+//     filter,
+//     Donation,
+//     options
+//   );
+//   console.log(result);
+//   res.send(result);
+// });
+
+
+    // Use Delete Method
+// admin delete news
+    app.delete("/AllNews/:id",verifyToken,verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await NewsCollection.deleteOne(query);
       res.send(result);
     });
-
+    // user delete donation 
+    app.delete("/Donation/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await DonationRequestCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.delete("/Bookmark/:id",verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await BookmarksCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.delete("/Jobs/:id",verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await NewsCollection.deleteOne(query);
+      res.send(result);
+    });
     app.get("/singlenews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
