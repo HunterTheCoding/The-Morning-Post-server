@@ -171,11 +171,15 @@ async function run() {
 
     // donation details show
     app.get("/donation/:email", verifyToken, async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const result = await DonationRequestCollection.find(query).toArray;
+      const reqemail = req.params.email;
+      const useremail = req.user.email;
+      if (reqemail === useremail){
 
-      res.send({ result });
+        const query = { email: reqemail };
+        const result = await DonationRequestCollection.find(query).toArray;
+  
+        res.send({ result });
+      }
     });
     app.get("/News/:section?", async (req, res) => {
       if (req.params.section) {
@@ -196,35 +200,32 @@ async function run() {
 
     // get bookemark data
 
-    app.get("/Bookmark/:email", async (req, res) => {
-      // console.log("Checking user email", req?.user?.email);
+    app.get("/Bookmark/:email", verifyToken, async (req, res) => {
+
       const userEmail = req?.user?.email;
       const reqEmail = req?.params?.email;
-      
+
       // Ensure the requested email matches the user's email
-      if (userEmail === reqEmail) {
-        try {
-          // Find all bookmarks for the user
-          const query = { email: reqEmail };
-          const userBookmarks = await BookmarksCollection.find(query).toArray();
-    
-          // Extract news IDs from bookmarks
-          const newsIds = userBookmarks.map(bookmark => bookmark.newsid);
-    
-          // Retrieve news data for the bookmarked news IDs
-          const newsQuery = { _id: { $in: newsIds } };
-          const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
-    
-          res.send(bookmarkedNews);
-        } catch (error) {
-          console.error("Error retrieving bookmarked news:", error);
-          res.status(500).send({ message: "Internal server error" });
-        }
-      } else {
-        return res.status(401).send({ message: "Unauthorized User" });
+      try {
+        // Find all bookmarks for the user
+        const query = {
+          useremail: reqEmail,
+        };
+        const userBookmarks = await BookmarksCollection.find(query).toArray();
+ 
+        // Extract news IDs from bookmarks
+        const newsIds = userBookmarks.map((bookmark) => new ObjectId(bookmark.newsid));
+
+        // Retrieve news data for the bookmarked news IDs
+        const newsQuery = { _id: { $in: newsIds } };
+        const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
+
+        res.send(bookmarkedNews);
+      } catch (error) {
+        console.error("Error retrieving bookmarked news:", error);
+        res.status(500).send({ message: "Internal server error" });
       }
     });
-    
 
     // Check Admin
 
@@ -264,7 +265,7 @@ async function run() {
       const result = await NewsCollection.deleteOne(query);
       res.send(result);
     });
-  
+
     app.get("/singlenews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
