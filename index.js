@@ -375,21 +375,19 @@ async function run() {
 
       const Donation = {
         $set: {
-          recipient_name: updateNews?.recipient_name,
-          address: updateNews?.address,
-          District: updateNews?.District,
+          section: updateNews?.section,
+          headline: updateNews?.headline,
+          source: updateNews?.source,
           Upazila: updateNews?.Upazila,
-          hospital_name: updateNews?.hospital_name,
+          date: updateNews?.date,
 
-          donation_date: updateNews?.donation_date,
-          donation_time: updateNews?.donation_time,
+          title: updateNews?.title,
+          writer: updateNews?.writer,
           hospital_name: updateNews?.hospital_name,
-          Request_Message: updateNews?.Request_Message,
+          image: updateNews?.image,
 
-          donation_status: updateNews?.donation_status,
-          requester_Name: updateNews?.requester_Name,
-          requester_email: updateNews?.requester_email,
-          requester_photo: updateNews?.requester_photo,
+          summary: updateNews?.summary,
+          news: updateNews?.news,
         },
       };
       console.log(Donation);
