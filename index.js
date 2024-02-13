@@ -234,13 +234,72 @@ async function run() {
 
 
     //  load all jobs 
-    
-    app.get("/Jobs", async (req, res) => {
+
+    app.get("/api/v1/jobs", async (req, res) => {
       // Fallback route when req.params.section is falsy
       const result = await JobsCollection.find().toArray();
       res.send(result);
     });
+    app.get("/api/v1/job/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) }
+        const result = await JobsCollection.findOne(query)
+        res.send(result)
+      } catch (error) {
+        console.error('Error from get api job:', error)
+        res.status(500).send("Internal server error")
+      }
 
+    })
+    app.post("/api/v1/jobs", async (req, res) => {
+      try {
+        const body = req.body;
+        const result = await JobsCollection.insertOne(body)
+        res.send(result)
+      } catch (error) {
+        console.error('Error from post api job:', error)
+        res.status(500).send("Internal server error from post api job")
+      }
+    })
+    app.delete("/api/v1/jobs/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        console.log(id);
+        const query = { _id: new ObjectId(id) }
+        console.log('from query', query);
+        const result = await JobsCollection.deleteOne(query)
+        res.send(result);
+      } catch (error) {
+        console.error('Error from delete api job:', error)
+        res.status(500).send("Internal server error from delete api job")
+      }
+  
+    })
+    app.patch("/api/v1/jobs/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) }
+        const options = { upsert: true }
+        const modifiedData = req.body;
+        const updatedDoc = {
+          $set: {
+            headline: modifiedData.headline,
+            image: modifiedData.img,
+            summary: modifiedData.summry,
+            date: modifiedData.date,
+            section: modifiedData.section,
+            jobUrl: modifiedData.jobsurl,
+          }
+        }
+        const result = await JobsCollection.updateOne(filter, updatedDoc, options)
+        res.send(result)
+      } catch (error) {
+        console.error('Error from patch api job:', error)
+        res.status(500).send("Internal server error from patch api job")
+      }
+ 
+    })
     // get bookemark data
 
     app.get("/Bookmark/:email", verifyToken, async (req, res) => {
