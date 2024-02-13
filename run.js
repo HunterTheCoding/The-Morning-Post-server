@@ -1,57 +1,6 @@
-const express = require("express");
-require("dotenv").config();
-const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const stripe = require("stripe")(process.env.STRIPE_SECRET);
-const cookieParser = require("cookie-parser");
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const port = process.env.PORT || 5000;
-const app = express();
-app.use(express.json());
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5173",
-      // "http://localhost:5174",
-      "https://the-morning-posts.surge.sh",
-    ],
-    credentials: true,
-  })
-);
-console.log(process.env.STRIPE_SECRET);
-
-app.use(cookieParser());
-// console.log(process.env.DB_USER);
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pahimj1.mongodb.net/?retryWrites=true&w=majority`;
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-
-const verifyToken = (req, res, next) => {
-  const token = req.cookies.token;
-  // console.log(token);
-
-  if (!token) {
-    console.log("token nai");
-    return res.status(401).send({ message: "unauthorized access" });
-  }
-  jwt.verify(token, process.env.NEWS_ACCESS_TOKEN, (err, decoded) => {
-    if (err) {
-      console.log(err);
-      return res.status(401).send({ message: "unauthorized access" });
-    }
-    req.user = decoded;
-    // console.log(req.user);
-    next();
-  });
-};
+const { ObjectId } = require("mongodb");
+const { client, app, verifyToken, stripe } = require(".");
 
 async function run() {
   try {
@@ -81,7 +30,6 @@ async function run() {
     };
 
     // Use Post Method
-
     // JsonWebToken
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -90,7 +38,6 @@ async function run() {
         expiresIn: "1d",
       });
       // console.log('user for token', token,user);
-
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -101,7 +48,6 @@ async function run() {
     });
 
     // Logout user
-
     app.post("/logout", async (req, res) => {
       const user = req.body;
       // console.log("logging out", user);
@@ -150,7 +96,6 @@ async function run() {
     });
 
     // implement script payment
-
     app.post("/create-payment-intent", async (req, res) => {
       const { amount } = req.body;
       console.log(req.body);
@@ -169,7 +114,6 @@ async function run() {
     });
 
     // Use Get Method
-
     // donation details show
     app.get("/donation/:email", verifyToken, async (req, res) => {
       const reqemail = req.params.email;
@@ -202,7 +146,6 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-//  news 
 
     app.get("/News/:section?", async (req, res) => {
       if (req.params.section) {
@@ -221,20 +164,7 @@ async function run() {
       }
     });
 
-    // single News load
-    app.get("/singleNews/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      // console.log(id)
-      const result = await NewsCollection.findOne(query);
-      // console.log(result);
-      res.send(result);
-    });
-    // Conne
-
-
-    //  load all jobs 
-    
+    //  load all jobs
     app.get("/Jobs", async (req, res) => {
       // Fallback route when req.params.section is falsy
       const result = await JobsCollection.find().toArray();
@@ -242,7 +172,6 @@ async function run() {
     });
 
     // get bookemark data
-
     app.get("/Bookmark/:email", verifyToken, async (req, res) => {
       const userEmail = req?.user?.email;
       const reqEmail = req?.params?.email;
@@ -272,7 +201,6 @@ async function run() {
     });
 
     // Check Admin
-
     app.get("/admin/:email", verifyToken, async (req, res) => {
       // console.log("asoe hlit hocche", req?.user?.email);
       const email = req.params.email;
@@ -302,48 +230,41 @@ async function run() {
     });
 
     //  All section Update Method
-
     // Bookmark Update
-    app.put("/News/:id", verifyToken,verifyAdmin, async (req, res) => {
-      const id = req.params.id;
-      const updateNews = req.body;
-      const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
-      console.log("id", id);
-      console.log("filter", filter);
-
-      console.log(updateNews);
-
-      const Donation = {
-        $set: {
-          recipient_name: updateNews?.recipient_name,
-          address: updateNews?.address,
-          District: updateNews?.District,
-          Upazila: updateNews?.Upazila,
-          hospital_name: updateNews?.hospital_name,
-
-          donation_date: updateNews?.donation_date,
-          donation_time: updateNews?.donation_time,
-          hospital_name: updateNews?.hospital_name,
-          Request_Message: updateNews?.Request_Message,
-
-          donation_status: updateNews?.donation_status,
-          requester_Name: updateNews?.requester_Name,
-          requester_email: updateNews?.requester_email,
-          requester_photo: updateNews?.requester_photo,
-        },
-      };
-      console.log(Donation);
-
-      const result = await DonationRequestCollection.updateOne(
-        filter,
-        Donation,
-        options
-      );
-      console.log(result);
-      res.send(result);
-    });
-
+    // app.put("/Blood_Request_update/:id", verifyToken, async (req, res) => {
+    //   const id = req.params.id;
+    //   const updatedDonation = req.body;
+    //   const filter = { _id: new ObjectId(id) };
+    //   const options = { upsert: true };
+    //   console.log("id", id);
+    //   console.log("filter", filter);
+    //   console.log(updatedDonation);
+    //   const Donation = {
+    //     $set: {
+    //       recipient_name: updatedDonation?.recipient_name,
+    //       address: updatedDonation?.address,
+    //       District: updatedDonation?.District,
+    //       Upazila: updatedDonation?.Upazila,
+    //       hospital_name: updatedDonation?.hospital_name,
+    //       donation_date: updatedDonation?.donation_date,
+    //       donation_time: updatedDonation?.donation_time,
+    //       hospital_name: updatedDonation?.hospital_name,
+    //       Request_Message: updatedDonation?.Request_Message,
+    //       donation_status: updatedDonation?.donation_status,
+    //       requester_Name: updatedDonation?.requester_Name,
+    //       requester_email: updatedDonation?.requester_email,
+    //       requester_photo: updatedDonation?.requester_photo,
+    //     },
+    //   };
+    //   console.log(Donation);
+    //   const result = await DonationRequestCollection.updateOne(
+    //     filter,
+    //     Donation,
+    //     options
+    //   );
+    //   console.log(result);
+    //   res.send(result);
+    // });
     // Use Delete Method
     // admin delete news
     app.delete("/AllNews/:id", verifyToken, verifyAdmin, async (req, res) => {
@@ -359,16 +280,12 @@ async function run() {
       const result = await DonationRequestCollection.deleteOne(query);
       res.send(result);
     });
-//booksmarks delete function--------->
-app.delete("/bookmarks/:id", async(req, res) => {
-  const id = req.params.id;
-  console.log(id)
-  const query = {
-      newsid: id
-  };
-  const Deletebookmarks = await BookmarksCollection.deleteOne(query);
-  res.send(Deletebookmarks)
-})
+    app.delete("/Bookmark/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await BookmarksCollection.deleteOne(query);
+      res.send(result);
+    });
     app.delete("/Jobs/:id", verifyToken, async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -395,11 +312,4 @@ app.delete("/bookmarks/:id", async(req, res) => {
     // await client.close();
   }
 }
-run().catch(console.dir);
-
-app.get("/", (req, res) => {
-  res.send("The Morning Server Is Running");
-});
-app.listen(port, () => {
-  console.log(`Server is Running On ${port}`);
-});
+exports.run = run;
