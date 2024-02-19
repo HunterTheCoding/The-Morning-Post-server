@@ -214,6 +214,13 @@ async function run() {
 
     // Use Get Method
 
+    // Banner Section
+    
+    app.get("/bannar", async (req, res) => {
+      const result = await BannarCollection.find().toArray();
+      res.send(result);
+    });
+
     // donation details show
     app.get("/donation/:email", verifyToken, async (req, res) => {
       const reqemail = req.params.email;
@@ -402,28 +409,27 @@ async function run() {
     });
 
     // Route to get a poll by ID
-app.get('/polls/:pollId', verifyToken, async (req, res, next) => {
-  try {
-    const { pollId } = req.params;
+    app.get("/polls/:pollId", verifyToken, async (req, res, next) => {
+      try {
+        const { pollId } = req.params;
 
-    // Find the poll in the database by ID
-    const foundPoll = await PullCollection.findOne({
-      _id: new ObjectId(pollId),
+        // Find the poll in the database by ID
+        const foundPoll = await PullCollection.findOne({
+          _id: new ObjectId(pollId),
+        });
+
+        // If the poll is found, send it in the response
+        if (foundPoll) {
+          return res.status(200).json(foundPoll);
+        }
+
+        // If the poll is not found, return a 404 status
+        res.status(404).json({ message: "Poll not found" });
+      } catch (error) {
+        // Pass any errors to the error handling middleware
+        next(error);
+      }
     });
-
-    // If the poll is found, send it in the response
-    if (foundPoll) {
-      return res.status(200).json(foundPoll);
-    }
-
-    // If the poll is not found, return a 404 status
-    res.status(404).json({ message: 'Poll not found' });
-  } catch (error) {
-    // Pass any errors to the error handling middleware
-    next(error);
-  }
-});
-
 
     //  All section Update Method
 
@@ -497,9 +503,11 @@ app.get('/polls/:pollId', verifyToken, async (req, res, next) => {
       try {
         const { pollId } = req.params;
         const { userId, options } = req.body;
-    
-        const poll = await PullCollection.findOne({ _id: new ObjectId(pollId) });
-    
+
+        const poll = await PullCollection.findOne({
+          _id: new ObjectId(pollId),
+        });
+
         const updatedOptions = poll.options.map((option) => {
           if (option._id.toString() === options) {
             if (!option.votes.includes(userId)) {
@@ -510,19 +518,18 @@ app.get('/polls/:pollId', verifyToken, async (req, res, next) => {
           }
           return option;
         });
-    
-        console.log("update",updatedOptions);
+
+        console.log("update", updatedOptions);
         const result = await PullCollection.updateOne(
           { _id: new ObjectId(pollId) },
           { $set: { options: updatedOptions } }
         );
-    console.log("result",result);
+        console.log("result", result);
         res.status(200).json(result);
       } catch (error) {
         next(error);
       }
     });
-    
 
     // Use Delete Method
     // admin delete news
