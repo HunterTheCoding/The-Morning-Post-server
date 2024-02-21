@@ -108,13 +108,6 @@ async function run() {
       // console.log("logging out", user);
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
-
-    app.post("/bookmarks", async (req, res) => {
-      const newsinfo = req.body;
-      // console.log(newsinfo)
-      const result = await BookmarksCollection.insertOne(newsinfo);
-      res.send(result);
-    });
     //   Create News Section
     app.post("/News", async (req, res) => {
       const News = req.body;
@@ -122,6 +115,11 @@ async function run() {
       const result = await NewsCollection.insertOne(News);
       // console.log(result);
       // res.send(result);
+      res.send(result);
+    });
+     app.post("/bookmarks", async (req, res) => {
+      const newsinfo = req.body;
+      const result = await BookmarksCollection.insertOne(newsinfo);
       res.send(result);
     });
     //   Create User Section
