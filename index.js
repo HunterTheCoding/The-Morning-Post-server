@@ -119,6 +119,7 @@ async function run() {
     });
      app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
+      // console.log(result);
       const result = await BookmarksCollection.insertOne(newsinfo);
       res.send(result);
     });
