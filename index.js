@@ -117,6 +117,41 @@ async function run() {
 
       res.send(result);
     });
+     app.post("/bookmarks", async (req, res) => {
+      const newsinfo = req.body;
+      // console.log(result);
+      const result = await BookmarksCollection.insertOne(newsinfo);
+      res.send(result);
+    });
+    
+    // get bookemark data
+    app.get("/Bookmark/:email", verifyToken, async (req, res) => {
+      const userEmail = req?.user?.email;
+      const reqEmail = req?.params?.email;
+
+      // Ensure the requested email matches the user's email
+      try {
+        // Find all bookmarks for the user
+        const query = {
+          useremail: reqEmail,
+        };
+        const userBookmarks = await BookmarksCollection.find(query).toArray();
+
+        // Extract news IDs from bookmarks
+        const newsIds = userBookmarks.map(
+          (bookmark) => new ObjectId(bookmark.newsid)
+        );
+
+        // Retrieve news data for the bookmarked news IDs
+        const newsQuery = { _id: { $in: newsIds } };
+        const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
+
+        res.send(bookmarkedNews);
+      } catch (error) {
+        console.error("Error retrieving bookmarked news:", error);
+        res.status(500).send({ message: "Internal server error" });
+      }
+    });
     //   Create User Section
     app.post("/users", async (req, res) => {
       const User = req.body;
@@ -324,35 +359,7 @@ async function run() {
         res.status(500).send("Internal server error from patch api job");
       }
     });
-    // get bookemark data
-
-    app.get("/Bookmark/:email", verifyToken, async (req, res) => {
-      const userEmail = req?.user?.email;
-      const reqEmail = req?.params?.email;
-
-      // Ensure the requested email matches the user's email
-      try {
-        // Find all bookmarks for the user
-        const query = {
-          useremail: reqEmail,
-        };
-        const userBookmarks = await BookmarksCollection.find(query).toArray();
-
-        // Extract news IDs from bookmarks
-        const newsIds = userBookmarks.map(
-          (bookmark) => new ObjectId(bookmark.newsid)
-        );
-
-        // Retrieve news data for the bookmarked news IDs
-        const newsQuery = { _id: { $in: newsIds } };
-        const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
-
-        res.send(bookmarkedNews);
-      } catch (error) {
-        console.error("Error retrieving bookmarked news:", error);
-        res.status(500).send({ message: "Internal server error" });
-      }
-    });
+    
 
     // Check Admin
 
