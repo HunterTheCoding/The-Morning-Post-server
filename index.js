@@ -244,10 +244,10 @@ async function run() {
 
     // Banner Section
     
-    app.get("/bannar", async (req, res) => {
-      const result = await BannarCollection.find().toArray();
-      res.send(result);
-    });
+    // app.get("/bannar", async (req, res) => {
+    //   const result = await BannarCollection.find().toArray();
+    //   res.send(result);
+    // });
 
     // donation details show
     app.get("/donation/:email", verifyToken, async (req, res) => {
