@@ -64,6 +64,7 @@ async function run() {
     const DonationRequestCollection = client
       .db("NewsDb")
       .collection("Donation");
+    const LiveLink = client.db("NewsDb").collection("LiveLink");
 
     // Verify Admin
     const verifyAdmin = async (req, res, next) => {
@@ -570,6 +571,31 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
+
+
+    // live Client Link set
+    app.get("/live", verifyToken, async (req, res) => {
+      const live = await LiveLink.find().toArray();
+      res.send(live);
+    });
+    app.post("/live", async (req, res) => {
+      try {
+        const body = req.body;
+        const result = await LiveLink.insertOne(body);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send("Internal server error from post api job");
+      }
+    });
+    app.delete("/live/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await LiveLink.deleteOne(query);
+      res.send(result);
+    });
+
+
+
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
