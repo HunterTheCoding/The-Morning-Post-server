@@ -56,7 +56,7 @@ async function run() {
     const UserCollection = client.db("NewsDb").collection("Users");
     const BookmarksCollection = client.db("NewsDb").collection("BookMark");
     const PullCollection = client.db("NewsDb").collection("Survey-Pull");
-    const BannarCollection = client.db("NewsDb").collection("Bannar");
+    const BannarCollection = client.db("NewsDb").collection("bannar");
     const DonationRequestCollection = client
       .db("NewsDb")
       .collection("Donation");
