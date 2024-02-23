@@ -118,13 +118,13 @@ async function run() {
 
       res.send(result);
     });
-     app.post("/bookmarks", async (req, res) => {
+    app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
       // console.log(result);
       const result = await BookmarksCollection.insertOne(newsinfo);
       res.send(result);
     });
-    
+
     // get bookemark data
     app.get("/Bookmark/:email", verifyToken, async (req, res) => {
       const userEmail = req?.user?.email;
@@ -257,7 +257,7 @@ async function run() {
           const query = { "newDonation.email": reqemail };
           const result = await DonationRequestCollection.find(query).toArray(); // Invoke toArray as a method
 
-          res.send(result );
+          res.send(result);
         } catch (error) {
           res.status(500).send("Internal Server Error");
         }
@@ -335,34 +335,28 @@ async function run() {
       }
     });
     app.patch("/api/v1/jobs/:id", async (req, res) => {
-      try {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const options = { upsert: true };
-        const modifiedData = req.body;
-        const updatedDoc = {
-          $set: {
-            headline: modifiedData.headline,
-            image: modifiedData.img,
-            summary: modifiedData.summry,
-            date: modifiedData.date,
-            section: modifiedData.section,
-            jobUrl: modifiedData.jobsurl,
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const option = {upsert: true}
+      const modifiedData = req.body;
+      console.log('this is body', modifiedData);
+      console.log('this is id job',id);
+      const doc = {
+           $set: {
+            headline: modifiedData?.headline,
+            image: modifiedData?.image,
+            summary: modifiedData?.summary,
+            date: modifiedData?.date,
+            section: modifiedData?.section,
+            jobUrl: modifiedData?.jobUrl,
           },
-        };
-        const result = await JobsCollection.updateOne(
-          filter,
-          updatedDoc,
-          options
-        );
-        res.send(result);
-      } catch (error) {
-        console.error("Error from patch api job:", error);
-        res.status(500).send("Internal server error from patch api job");
       }
+      const result = await JobsCollection.updateOne(query, doc, option)
+      res.send(result)
+     
     });
-    
 
+    
     // Check Admin
 
     app.get("/admin/:email", verifyToken, async (req, res) => {
