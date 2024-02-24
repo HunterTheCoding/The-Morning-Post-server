@@ -362,10 +362,7 @@ async function run() {
       const result = await quizCollection.find().toArray()
       res.send(result)
     })
-    app.get("/api/v1/quizAnswer", async (req, res) => {
-      const result = await quizAnswerCollection.find().toArray();
-      res.send(result)
-    })
+
 
     app.post("/api/v1/quiz", async (req, res) => {
       try {
@@ -391,8 +388,8 @@ async function run() {
         })
         res.send({ userAnswers, correctCount, inCorrectCount })
       } catch (error) {
-        console.error("error from quiz", error)
-        res.status(500).json({ error: "internal server error" })
+        console.error("Error from quiz", error)
+        res.status(500).json({ error: "Internal server error from quiz" })
       }
 
     })
