@@ -57,6 +57,8 @@ async function run() {
     const BookmarksCollection = client.db("NewsDb").collection("BookMark");
     const PullCollection = client.db("NewsDb").collection("Survey-Pull");
     const BannarCollection = client.db("NewsDb").collection("bannar");
+    const quizCollection = client.db("NewsDb").collection("quiz");
+    const quizAnswerCollection = client.db("NewsDb").collection("quizAnswer");
     const DonationRequestCollection = client
       .db("NewsDb")
       .collection("Donation");
@@ -355,6 +357,49 @@ async function run() {
       res.send(result)
      
     });
+    // quiz api start
+    app.get("/api/v1/quiz", async(req, res)=>{
+      const result = await quizCollection.find().toArray()
+      res.send(result)
+    }) 
+    app.get("/api/v1/quizAnswer", async(req, res)=>{
+      const result = await quizAnswerCollection.find().toArray();
+      res.send(result)
+    })
+
+  app.post("/api/v1/quiz", async(req, res)=>{
+    try {
+      const userAnswers = req.body;
+      console.log("Users answer", userAnswers);
+      const correctAnswers = await quizCollection.find().toArray()
+   
+      let correctCount = 0;
+      let inCorrectCount = 0;
+      correctAnswers.forEach((correctAnswer, questionIndex)=>{
+        const correctOptionIndex = correctAnswer.answer;
+        if(userAnswers[questionIndex] === correctOptionIndex){
+          correctCount++;
+        }else{
+          inCorrectCount++;
+        }
+      })
+   
+      console.log("correctCount",correctCount);
+      console.log("inCorrectCount",inCorrectCount);
+      const result = await quizAnswerCollection.insertOne({
+        userAnswers,
+        correctCount,
+        inCorrectCount,
+     
+      })
+      res.send({userAnswers, correctCount, inCorrectCount})
+    } catch (error) {
+      console.error("error from quiz",error)
+      res.status(500).json({error: "internal server error"})
+    }
+ 
+  })
+    // quiz api end
 
     
     // Check Admin
