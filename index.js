@@ -338,70 +338,67 @@ async function run() {
     });
     app.patch("/api/v1/jobs/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
-      const option = {upsert: true}
+      const query = { _id: new ObjectId(id) }
+      const option = { upsert: true }
       const modifiedData = req.body;
       console.log('this is body', modifiedData);
-      console.log('this is id job',id);
+      console.log('this is id job', id);
       const doc = {
-           $set: {
-            headline: modifiedData?.headline,
-            image: modifiedData?.image,
-            summary: modifiedData?.summary,
-            date: modifiedData?.date,
-            section: modifiedData?.section,
-            jobUrl: modifiedData?.jobUrl,
-          },
+        $set: {
+          headline: modifiedData?.headline,
+          image: modifiedData?.image,
+          summary: modifiedData?.summary,
+          date: modifiedData?.date,
+          section: modifiedData?.section,
+          jobUrl: modifiedData?.jobUrl,
+        },
       }
       const result = await JobsCollection.updateOne(query, doc, option)
       res.send(result)
-     
+
     });
     // quiz api start
-    app.get("/api/v1/quiz", async(req, res)=>{
+    app.get("/api/v1/quiz", async (req, res) => {
       const result = await quizCollection.find().toArray()
       res.send(result)
-    }) 
-    app.get("/api/v1/quizAnswer", async(req, res)=>{
+    })
+    app.get("/api/v1/quizAnswer", async (req, res) => {
       const result = await quizAnswerCollection.find().toArray();
       res.send(result)
     })
 
-  app.post("/api/v1/quiz", async(req, res)=>{
-    try {
-      const userAnswers = req.body;
-      console.log("Users answer", userAnswers);
-      const correctAnswers = await quizCollection.find().toArray()
-   
-      let correctCount = 0;
-      let inCorrectCount = 0;
-      correctAnswers.forEach((correctAnswer, questionIndex)=>{
-        const correctOptionIndex = correctAnswer.answer;
-        if(userAnswers[questionIndex] === correctOptionIndex){
-          correctCount++;
-        }else{
-          inCorrectCount++;
-        }
-      })
-   
-      console.log("correctCount",correctCount);
-      console.log("inCorrectCount",inCorrectCount);
-      const result = await quizAnswerCollection.insertOne({
-        userAnswers,
-        correctCount,
-        inCorrectCount,
-     
-      })
-      res.send({userAnswers, correctCount, inCorrectCount})
-    } catch (error) {
-      console.error("error from quiz",error)
-      res.status(500).json({error: "internal server error"})
-    }
- 
-  })
+    app.post("/api/v1/quiz", async (req, res) => {
+      try {
+        const userAnswers = req.body;
+        console.log("Users answer", userAnswers);
+        const correctAnswers = await quizCollection.find().toArray()
+
+        let correctCount = 0;
+        let inCorrectCount = 0;
+        correctAnswers.forEach((correctAnswer, questionIndex) => {
+          const correctOptionIndex = correctAnswer.answer;
+          if (userAnswers[questionIndex] === correctOptionIndex) {
+            correctCount++;
+          } else {
+            inCorrectCount++;
+          }
+        })
+        const result = await quizAnswerCollection.insertOne({
+          userAnswers,
+          correctCount,
+          inCorrectCount,
+
+        })
+        res.send({ userAnswers, correctCount, inCorrectCount })
+      } catch (error) {
+        console.error("error from quiz", error)
+        res.status(500).json({ error: "internal server error" })
+      }
+
+    })
     // quiz api end
 
-    
+
     // Check Admin
 
     app.get("/admin/:email", verifyToken, async (req, res) => {
