@@ -384,7 +384,6 @@ async function run() {
           userAnswers,
           correctCount,
           inCorrectCount,
-
         })
         res.send({ userAnswers, correctCount, inCorrectCount })
       } catch (error) {
