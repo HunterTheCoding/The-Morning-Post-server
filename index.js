@@ -302,7 +302,7 @@ async function run() {
     });
 
     //  get  All Pull request
-    app.get("/Show-Pull", verifyToken, async (req, res) => {
+    app.get("/Show-Pull",  async (req, res) => {
       const AllPUll = await PullCollection.find().toArray();
       console.log(AllPUll);
       res.send(AllPUll);
@@ -519,7 +519,7 @@ async function run() {
 
     // Route to update poll votes
 
-    app.patch("/updatePoll/:pollId", async (req, res, next) => {
+    app.patch("/updatePoll/:pollId", verifyToken, async (req, res, next) => {
       try {
         const { pollId } = req.params;
         const { userId, options } = req.body;
