@@ -12,7 +12,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      // "http://localhost:5174",
+      "http://localhost:5174",
       "https://the-morning-posts.surge.sh",
     ],
     credentials: true,
@@ -21,7 +21,6 @@ app.use(
 console.log(process.env.STRIPE_SECRET);
 
 app.use(cookieParser());
-// console.log(process.env.DB_USER);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pahimj1.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -36,19 +35,15 @@ const client = new MongoClient(uri, {
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
-  // console.log(token);
 
   if (!token) {
-    console.log("token nai");
     return res.status(401).send({ message: "unauthorized access" });
   }
   jwt.verify(token, process.env.NEWS_ACCESS_TOKEN, (err, decoded) => {
     if (err) {
-      console.log(err);
       return res.status(401).send({ message: "unauthorized access" });
     }
     req.user = decoded;
-    // console.log(req.user);
     next();
   });
 };
@@ -61,6 +56,7 @@ async function run() {
     const UserCollection = client.db("NewsDb").collection("Users");
     const BookmarksCollection = client.db("NewsDb").collection("BookMark");
     const PullCollection = client.db("NewsDb").collection("Survey-Pull");
+    const BannarCollection = client.db("NewsDb").collection("bannar");
     const DonationRequestCollection = client
       .db("NewsDb")
       .collection("Donation");
@@ -71,11 +67,10 @@ async function run() {
       const email = req.user?.email;
       const query = { Email: email };
       const user = await UserCollection.findOne(query);
-      // console.log(email,user);
+
       const IsAdmin = user.role === "admin";
 
       if (!IsAdmin) {
-        console.log("error");
         return res.status(401).send({ message: "unauthorized User" });
       } else {
         next();
@@ -87,11 +82,10 @@ async function run() {
     // JsonWebToken
     app.post("/jwt", async (req, res) => {
       const user = req.body;
-      // console.log('user token');
+
       const token = jwt.sign(user, process.env.NEWS_ACCESS_TOKEN, {
         expiresIn: "1d",
       });
-      // console.log('user for token', token,user);
 
       res
         .cookie("token", token, {
@@ -106,16 +100,22 @@ async function run() {
 
     app.post("/logout", async (req, res) => {
       const user = req.body;
-      // console.log("logging out", user);
+
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
+    });
+
+    app.post("/bookmarks", async (req, res) => {
+      const newsinfo = req.body;
+
+      const result = await BookmarksCollection.insertOne(newsinfo);
+      res.send(result);
     });
     //   Create News Section
     app.post("/News", async (req, res) => {
       const News = req.body;
-      //   console.log("News ", News);
+
       const result = await NewsCollection.insertOne(News);
-      // console.log(result);
-      // res.send(result);
+
       res.send(result);
     });
      app.post("/bookmarks", async (req, res) => {
@@ -156,26 +156,24 @@ async function run() {
     //   Create User Section
     app.post("/users", async (req, res) => {
       const User = req.body;
-      console.log("auth user", User);
+
       const query = { Email: User?.Email };
       const Exitinguser = await UserCollection.findOne(query);
-      console.log(Exitinguser);
+
       if (Exitinguser) {
-        console.log("user ase");
         return res.send({ message: "user already exist", insertedId: null });
       }
       const result = await UserCollection.insertOne(User);
-      // console.log(result);
+
       return res.send(result);
     });
 
     // create donation
     app.post("/donation-request", verifyToken, async (req, res) => {
       const DonationRequest = req.body;
-      console.log(DonationRequest);
 
       const result = await DonationRequestCollection.insertOne(DonationRequest);
-      console.log(result);
+
       return res.send(result);
     });
 
@@ -183,7 +181,7 @@ async function run() {
 
     app.post("/create-payment-intent", async (req, res) => {
       const { amount } = req.body;
-      console.log(req.body);
+
       const amountInCents = parseInt(amount);
       // Create a PaymentIntent with the order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
@@ -191,7 +189,6 @@ async function run() {
         currency: "usd",
         payment_method_types: ["card"],
       });
-      console.log(paymentIntent);
 
       res.send({
         clientSecret: paymentIntent.client_secret,
@@ -205,7 +202,6 @@ async function run() {
         const result = await JobsCollection.insertOne(body);
         res.send(result);
       } catch (error) {
-        console.error("Error from post api job:", error);
         res.status(500).send("Internal server error from post api job");
       }
     });
@@ -233,7 +229,7 @@ async function run() {
 
         // Insert the new poll into the database
         const createdPoll = await PullCollection.insertOne(newPoll);
-        console.log(createdPoll, newPoll);
+
         res.send(createdPoll);
       } catch (error) {
         // Pass any errors to the error handling middleware
@@ -244,32 +240,25 @@ async function run() {
     // Use Get Method
 
     // Banner Section
-    
-    // app.get("/bannar", async (req, res) => {
-    //   const result = await BannarCollection.find().toArray();
-    //   res.send(result);
-    // });
+
+    app.get("/bannar", async (req, res) => {
+      const result = await BannarCollection.find().toArray();
+      res.send(result);
+    });
+
 
     // donation details show
     app.get("/donation/:email", verifyToken, async (req, res) => {
       const reqemail = req.params.email;
       const useremail = req.user.email;
-
-      console.log(reqemail, useremail);
-
       if (reqemail === useremail) {
-        console.log(`function is working`);
-
         try {
           // Query MongoDB collection
           const query = { "newDonation.email": reqemail };
           const result = await DonationRequestCollection.find(query).toArray(); // Invoke toArray as a method
 
-          console.log(result);
-
-          res.send({ result });
+          res.send(result );
         } catch (error) {
-          console.error("Error while querying database:", error);
           res.status(500).send("Internal Server Error");
         }
       } else {
@@ -279,7 +268,6 @@ async function run() {
     //  admin has access all donation list
     app.get("/Donation", verifyToken, verifyAdmin, async (req, res) => {
       const result = await DonationRequestCollection.find().toArray();
-      // console.log(result);
       res.send(result);
     });
     //  news
@@ -291,8 +279,6 @@ async function run() {
           section: req.params.section,
         };
         const result = await NewsCollection.find(query).toArray();
-
-        // console.log(",", result);
         res.send(result);
       } else {
         // Fallback route when req.params.section is falsy
@@ -305,9 +291,9 @@ async function run() {
     app.get("/singleNews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      // console.log(id)
+
       const result = await NewsCollection.findOne(query);
-      // console.log(result);
+
       res.send(result);
     });
 
@@ -340,9 +326,7 @@ async function run() {
     app.delete("/api/v1/jobs/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        console.log(id);
         const query = { _id: new ObjectId(id) };
-        console.log("from query", query);
         const result = await JobsCollection.deleteOne(query);
         res.send(result);
       } catch (error) {
@@ -500,6 +484,7 @@ async function run() {
     // });
 
     // Route to update poll votes
+
     app.patch("/updatePoll/:pollId", async (req, res, next) => {
       try {
         const { pollId } = req.params;
