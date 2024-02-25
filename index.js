@@ -98,8 +98,10 @@ async function run() {
         .send({ success: true });
     });
 
+
     // Logout user
 
+    
     app.post("/logout", async (req, res) => {
       const user = req.body;
 
