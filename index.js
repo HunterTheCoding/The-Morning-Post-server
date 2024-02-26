@@ -516,7 +516,6 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-
 // live Client Link set
 app.get("/live",async (req, res) => {
   const live = await LiveLink.find().toArray();
