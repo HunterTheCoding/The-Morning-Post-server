@@ -18,10 +18,8 @@ app.use(
     credentials: true,
   })
 );
-console.log(process.env.STRIPE_SECRET);
 
 app.use(cookieParser());
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pahimj1.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -35,7 +33,6 @@ const client = new MongoClient(uri, {
 
 const verifyToken = (req, res, next) => {
   const token = req.cookies.token;
-
   if (!token) {
     return res.status(401).send({ message: "unauthorized access" });
   }
@@ -69,9 +66,7 @@ async function run() {
       const email = req.user?.email;
       const query = { Email: email };
       const user = await UserCollection.findOne(query);
-
       const IsAdmin = user.role === "admin";
-
       if (!IsAdmin) {
         return res.status(401).send({ message: "unauthorized User" });
       } else {
@@ -80,7 +75,6 @@ async function run() {
     };
 
     // Use Post Method
-
     // JsonWebToken
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -88,7 +82,6 @@ async function run() {
       const token = jwt.sign(user, process.env.NEWS_ACCESS_TOKEN, {
         expiresIn: "1d",
       });
-
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -100,26 +93,20 @@ async function run() {
 
 
     // Logout user
-
-    
     app.post("/logout", async (req, res) => {
       const user = req.body;
-
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
 
     app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
-
       const result = await BookmarksCollection.insertOne(newsinfo);
       res.send(result);
     });
     //   Create News Section
     app.post("/News", async (req, res) => {
       const News = req.body;
-
       const result = await NewsCollection.insertOne(News);
-
       res.send(result);
     });
     app.post("/bookmarks", async (req, res) => {
@@ -141,7 +128,6 @@ async function run() {
           useremail: reqEmail,
         };
         const userBookmarks = await BookmarksCollection.find(query).toArray();
-
         // Extract news IDs from bookmarks
         const newsIds = userBookmarks.map(
           (bookmark) => new ObjectId(bookmark.newsid)
@@ -150,7 +136,6 @@ async function run() {
         // Retrieve news data for the bookmarked news IDs
         const newsQuery = { _id: { $in: newsIds } };
         const bookmarkedNews = await NewsCollection.find(newsQuery).toArray();
-
         res.send(bookmarkedNews);
       } catch (error) {
         console.error("Error retrieving bookmarked news:", error);
@@ -160,24 +145,19 @@ async function run() {
     //   Create User Section
     app.post("/users", async (req, res) => {
       const User = req.body;
-
       const query = { Email: User?.Email };
       const Exitinguser = await UserCollection.findOne(query);
-
       if (Exitinguser) {
         return res.send({ message: "user already exist", insertedId: null });
       }
       const result = await UserCollection.insertOne(User);
-
       return res.send(result);
     });
 
     // create donation
     app.post("/donation-request", verifyToken, async (req, res) => {
       const DonationRequest = req.body;
-
       const result = await DonationRequestCollection.insertOne(DonationRequest);
-
       return res.send(result);
     });
 
@@ -185,7 +165,6 @@ async function run() {
 
     app.post("/create-payment-intent", async (req, res) => {
       const { amount } = req.body;
-
       const amountInCents = parseInt(amount);
       // Create a PaymentIntent with the order amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
@@ -215,7 +194,6 @@ async function run() {
     app.post("/Polls", async (req, res, next) => {
       try {
         const { body } = req;
-
         // Check if request body is valid
         if (!body) {
           return res.status(400).json({ message: "Invalid body" });
@@ -230,21 +208,17 @@ async function run() {
             votes: [],
           })),
         };
-
         // Insert the new poll into the database
         const createdPoll = await PullCollection.insertOne(newPoll);
-
         res.send(createdPoll);
       } catch (error) {
         // Pass any errors to the error handling middleware
         next(error);
       }
     });
-
     // Use Get Method
 
     // Banner Section
-
     app.get("/bannar", async (req, res) => {
       const result = await BannarCollection.find().toArray();
       res.send(result);
@@ -295,9 +269,7 @@ async function run() {
     app.get("/singleNews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-
       const result = await NewsCollection.findOne(query);
-
       res.send(result);
     });
 
@@ -309,7 +281,6 @@ async function run() {
     });
 
     //  load all jobs
-
     app.get("/api/v1/jobs", async (req, res) => {
       // Fallback route when req.params.section is falsy
       const result = await JobsCollection.find().toArray();
@@ -396,14 +367,9 @@ async function run() {
     })
     // quiz api end
 
-
     // Check Admin
-
     app.get("/admin/:email", verifyToken, async (req, res) => {
-      // console.log("asoe hlit hocche", req?.user?.email);
       const email = req.params.email;
-
-      // console.log(req?.user, "emaillllllll", email);
       if (email !== req?.user?.email) {
         return res.status(403).send({ message: "unauthorized Access" });
       }
@@ -420,10 +386,7 @@ async function run() {
 
     // show all user
     app.get("/Users", verifyToken, verifyAdmin, async (req, res) => {
-      console.log("cheack to token", req?.user?.email);
-      // console.log(req.user);
       const result = await UserCollection.find().toArray();
-      // console.log(result);
       res.send(result);
     });
 
@@ -431,8 +394,6 @@ async function run() {
     app.get("/polls/:pollId", verifyToken, async (req, res, next) => {
       try {
         const { pollId } = req.params;
-
-        // Find the poll in the database by ID
         const foundPoll = await PullCollection.findOne({
           _id: new ObjectId(pollId),
         });
@@ -458,11 +419,6 @@ async function run() {
       const updateNews = req.body;
       const filter = { _id: new ObjectId(id) };
       const options = { upsert: true };
-      console.log("id", id);
-      console.log("filter", filter);
-
-      console.log(updateNews);
-
       const Donation = {
         $set: {
           section: updateNews?.section,
@@ -470,7 +426,6 @@ async function run() {
           source: updateNews?.source,
           Upazila: updateNews?.Upazila,
           date: updateNews?.date,
-
           title: updateNews?.title,
           writer: updateNews?.writer,
           hospital_name: updateNews?.hospital_name,
@@ -480,42 +435,15 @@ async function run() {
           news: updateNews?.news,
         },
       };
-      console.log(Donation);
 
       const result = await DonationRequestCollection.updateOne(
         filter,
         Donation,
         options
       );
-      console.log(result);
       res.send(result);
     });
 
-    // Route to update a poll
-    // app.patch("/updatePoll/:pollId", async (req, res, next) => {
-    //   try {
-    //     const { pollId } = req.params;
-    //     const { body } = req;
-    //     console.log(body);
-    //     // Prepare updated poll object with default values
-    //     const updatedPoll = {
-    //       ...body,
-    //       options: body?.options.map((option) => ({
-    //         ...option,
-    //         _id: option._id ? option._id : new ObjectId(),
-    //         votes: option.votes ? option.votes : [],
-    //       })),
-    //     };
-    //     console.log(updatedPoll);
-    //     // Update the poll in the database
-    //     const updateResult = await PullCollection.updateOne(
-    //       { _id: new ObjectId(pollId) },
-    //       { $set: updatedPoll },
-    //       { upsert: true }
-    //     );
-    //     res.send(updateResult);
-    //   } catch (error) {}
-    // });
 
     // Route to update poll votes
 
@@ -523,7 +451,6 @@ async function run() {
       try {
         const { pollId } = req.params;
         const { userId, options } = req.body;
-
         const poll = await PullCollection.findOne({
           _id: new ObjectId(pollId),
         });
@@ -544,7 +471,6 @@ async function run() {
           { _id: new ObjectId(pollId) },
           { $set: { options: updatedOptions } }
         );
-        console.log("result", result);
         res.status(200).json(result);
       } catch (error) {
         next(error);
@@ -591,31 +517,30 @@ async function run() {
       res.send(result);
     });
 
+// live Client Link set
+app.get("/live",async (req, res) => {
+  const live = await LiveLink.find().toArray();
+  res.send(live);
+});
+app.put("/live", async (req, res) => {
+  try {
+    const body = req.body;
+    const filter = { Find: body?.Find };
+    const options = { upsert: true };
+    const Link = {
+      $set: {
+        Link: body?.Link,
+        Find: body?.Find,
+      },
+    };
+    const result = await LiveLink.updateOne(filter,Link,options)
+    res.send(result);
+  } catch (error) {
+    res.status(500).send("Internal server error from post api job");
+  }
+});
 
-    // live Client Link set
-    app.get("/live", verifyToken, async (req, res) => {
-      const live = await LiveLink.find().toArray();
-      res.send(live);
-    });
-    app.post("/live", async (req, res) => {
-      try {
-        const body = req.body;
-        const result = await LiveLink.insertOne(body);
-        res.send(result);
-      } catch (error) {
-        res.status(500).send("Internal server error from post api job");
-      }
-    });
-    app.delete("/live/:id", verifyToken, async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await LiveLink.deleteOne(query);
-      res.send(result);
-    });
 
-
-
-    // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -623,8 +548,7 @@ async function run() {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+
   }
 }
 run().catch(console.dir);
