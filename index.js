@@ -133,6 +133,14 @@ async function run() {
       res.send(result);
     })
 
+    // delete a news
+    app.delete('/News/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await NewsCollection.deleteOne(query);
+      res.send(result);
+    })
+
     app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
       // console.log(result);
