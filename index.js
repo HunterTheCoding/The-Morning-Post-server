@@ -109,6 +109,30 @@ async function run() {
       const result = await NewsCollection.insertOne(News);
       res.send(result);
     });
+
+    // update a news
+    app.put('/News/:id', async (req, res) => {
+      const News = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updatedNews = {
+        $set: {
+          section: News.section,
+          headline: News.headline,
+          source: News.source,
+          date: News.date,
+          title: News.title,
+          writer: News.writer,
+          image: News.image,
+          summary: News.summary,
+          news: News.news
+        }
+      };
+      const result = await NewsCollection.updateOne(filter, updatedNews, option);
+      res.send(result);
+    })
+
     app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
       // console.log(result);
@@ -274,7 +298,7 @@ async function run() {
     });
 
     //  get  All Pull request
-    app.get("/Show-Pull",  async (req, res) => {
+    app.get("/Show-Pull", async (req, res) => {
       const AllPUll = await PullCollection.find().toArray();
       console.log(AllPUll);
       res.send(AllPUll);
@@ -516,28 +540,28 @@ async function run() {
       // console.log(result);
       res.send(result);
     });
-// live Client Link set
-app.get("/live",async (req, res) => {
-  const live = await LiveLink.find().toArray();
-  res.send(live);
-});
-app.put("/live", async (req, res) => {
-  try {
-    const body = req.body;
-    const filter = { Find: body?.Find };
-    const options = { upsert: true };
-    const Link = {
-      $set: {
-        Link: body?.Link,
-        Find: body?.Find,
-      },
-    };
-    const result = await LiveLink.updateOne(filter,Link,options)
-    res.send(result);
-  } catch (error) {
-    res.status(500).send("Internal server error from post api job");
-  }
-});
+    // live Client Link set
+    app.get("/live", async (req, res) => {
+      const live = await LiveLink.find().toArray();
+      res.send(live);
+    });
+    app.put("/live", async (req, res) => {
+      try {
+        const body = req.body;
+        const filter = { Find: body?.Find };
+        const options = { upsert: true };
+        const Link = {
+          $set: {
+            Link: body?.Link,
+            Find: body?.Find,
+          },
+        };
+        const result = await LiveLink.updateOne(filter, Link, options)
+        res.send(result);
+      } catch (error) {
+        res.status(500).send("Internal server error from post api job");
+      }
+    });
 
 
     await client.connect();
