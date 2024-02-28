@@ -64,7 +64,7 @@ async function run() {
     // Verify Admin
     const verifyAdmin = async (req, res, next) => {
       const email = req.user?.email;
-      const query = { Email: email };
+      const query = { Email: email,role:"admin" };
       const user = await UserCollection.findOne(query);
       const IsAdmin = user.role === "admin";
       if (!IsAdmin) {
@@ -276,7 +276,7 @@ async function run() {
     //  get  All Pull request
     app.get("/Show-Pull",  async (req, res) => {
       const AllPUll = await PullCollection.find().toArray();
-      console.log(AllPUll);
+
       res.send(AllPUll);
     });
 
@@ -314,8 +314,7 @@ async function run() {
       const query = { _id: new ObjectId(id) }
       const option = { upsert: true }
       const modifiedData = req.body;
-      console.log('this is body', modifiedData);
-      console.log('this is id job', id);
+     
       const doc = {
         $set: {
           headline: modifiedData?.headline,
@@ -340,7 +339,7 @@ async function run() {
     app.post("/api/v1/quiz", async (req, res) => {
       try {
         const userAnswers = req.body;
-        console.log("Users answer", userAnswers);
+
         const correctAnswers = await quizCollection.find().toArray()
 
         let correctCount = 0;
@@ -370,9 +369,7 @@ async function run() {
     // Check Admin
     app.get("/admin/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
-      if (email !== req?.user?.email) {
-        return res.status(403).send({ message: "unauthorized Access" });
-      }
+   
       const query = { Email: email };
       const user = await UserCollection.findOne(query);
 
@@ -380,7 +377,7 @@ async function run() {
       if (user?.role === "admin") {
         isAdmin = true;
       }
-      console.log(isAdmin, "admin");
+    
       res.send({ isAdmin });
     });
 
@@ -466,7 +463,6 @@ async function run() {
           return option;
         });
 
-        console.log("update", updatedOptions);
         const result = await PullCollection.updateOne(
           { _id: new ObjectId(pollId) },
           { $set: { options: updatedOptions } }
@@ -495,7 +491,7 @@ async function run() {
     //booksmarks delete function--------->
     app.delete("/bookmarks/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+   
       const query = {
         newsid: id,
       };
@@ -511,9 +507,9 @@ async function run() {
     app.get("/singlenews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-      // console.log(id)
+   
       const result = await NewsCollection.findOne(query);
-      // console.log(result);
+
       res.send(result);
     });
 // live Client Link set
