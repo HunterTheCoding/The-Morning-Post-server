@@ -157,6 +157,7 @@ async function run() {
     // create donation
     app.post("/donation-request", verifyToken, async (req, res) => {
       const DonationRequest = req.body;
+      console.log(DonationRequest);
       const result = await DonationRequestCollection.insertOne(DonationRequest);
       return res.send(result);
     });
@@ -246,6 +247,7 @@ async function run() {
     //  admin has access all donation list
     app.get("/Donation", verifyToken, verifyAdmin, async (req, res) => {
       const result = await DonationRequestCollection.find().toArray();
+      console.log(result);
       res.send(result);
     });
     //  news
