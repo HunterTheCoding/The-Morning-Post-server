@@ -55,6 +55,7 @@ async function run() {
     const PullCollection = client.db("NewsDb").collection("Survey-Pull");
     const BannarCollection = client.db("NewsDb").collection("bannar");
     const quizCollection = client.db("NewsDb").collection("quiz");
+    const ReviewCollection = client.db("NewsDb").collection("review");
     const quizAnswerCollection = client.db("NewsDb").collection("quizAnswer");
     const DonationRequestCollection = client
       .db("NewsDb")
@@ -97,7 +98,16 @@ async function run() {
       const user = req.body;
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
-
+    //review section-->
+   app.post("/review", async(req, res) => {
+       const reviewinfo = req.body;
+        const result = await ReviewCollection.insertOne(reviewinfo);
+        res.send(result);
+        });
+        app.get("/review", async(req, res) => {
+          const result = await ReviewCollection.find().toArray();
+          res.send(result);
+        });
     app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
       const result = await BookmarksCollection.insertOne(newsinfo);
