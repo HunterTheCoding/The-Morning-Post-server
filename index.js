@@ -98,6 +98,32 @@ async function run() {
       const user = req.body;
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
+  // update a news
+        app.put('/news/:id', async(req, res) => {
+            const News = req.body;
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const option = { upsert: true };
+            const updatedNews = {
+                $set: {
+                    section: News.section,
+                    headline: News.headline,
+                    source: News.source,
+                    date: News.date,
+                    title: News.title,
+                    writer: News.writer,
+                    image: News.image,
+                    summary: News.summary,
+                    news: News.news
+                }
+            };
+            const result = await NewsCollection.updateOne(filter, updatedNews, option);
+            res.send(result);
+        })
+
+
+
+    
     //review section-->
    app.post("/review", async(req, res) => {
        const reviewinfo = req.body;
