@@ -308,6 +308,14 @@ async function run() {
       res.send(result);
     })
 
+    // delete a news
+    app.delete('/News/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const result = await NewsCollection.deleteOne(query);
+      res.send(result);
+    })
+
 
     //  get  All Pull request
     app.get("/Show-Pull",  async (req, res) => {
