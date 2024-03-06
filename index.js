@@ -285,6 +285,30 @@ async function run() {
       res.send(result);
     });
 
+     // update a news
+     app.put('/news/:id', async (req, res) => {
+      const News = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updatedNews = {
+        $set: {
+          section: News.section,
+          headline: News.headline,
+          source: News.source,
+          date: News.date,
+          title: News.title,
+          writer: News.writer,
+          image: News.image,
+          summary: News.summary,
+          news: News.news
+        }
+      };
+      const result = await NewsCollection.updateOne(filter, updatedNews, option);
+      res.send(result);
+    })
+
+
     //  get  All Pull request
     app.get("/Show-Pull",  async (req, res) => {
       const AllPUll = await PullCollection.find().toArray();
