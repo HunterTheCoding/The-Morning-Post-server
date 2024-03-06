@@ -65,7 +65,7 @@ async function run() {
     // Verify Admin
     const verifyAdmin = async (req, res, next) => {
       const email = req.user?.email;
-      const query = { Email: email,role:"admin" };
+      const query = { Email: email, role: "admin" };
       const user = await UserCollection.findOne(query);
       const IsAdmin = user.role === "admin";
       if (!IsAdmin) {
@@ -92,48 +92,48 @@ async function run() {
         .send({ success: true });
     });
 
-
     // Logout user
     app.post("/logout", async (req, res) => {
       const user = req.body;
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
-  // update a news
-        app.put('/news/:id', async(req, res) => {
-            const News = req.body;
-            const id = req.params.id;
-            const filter = { _id: new ObjectId(id) };
-            const option = { upsert: true };
-            const updatedNews = {
-                $set: {
-                    section: News.section,
-                    headline: News.headline,
-                    source: News.source,
-                    date: News.date,
-                    title: News.title,
-                    writer: News.writer,
-                    image: News.image,
-                    summary: News.summary,
-                    news: News.news
-                }
-            };
-            const result = await NewsCollection.updateOne(filter, updatedNews, option);
-            res.send(result);
-        })
+    // update a news
+    app.put("/news/:id", async (req, res) => {
+      const News = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const option = { upsert: true };
+      const updatedNews = {
+        $set: {
+          section: News.section,
+          headline: News.headline,
+          source: News.source,
+          date: News.date,
+          title: News.title,
+          writer: News.writer,
+          image: News.image,
+          summary: News.summary,
+          news: News.news,
+        },
+      };
+      const result = await NewsCollection.updateOne(
+        filter,
+        updatedNews,
+        option
+      );
+      res.send(result);
+    });
 
-
-
-    
     //review section-->
-   app.post("/review", async(req, res) => {
-       const reviewinfo = req.body;
-        const result = await ReviewCollection.insertOne(reviewinfo);
-        res.send(result);
-        });
-        app.get("/review", async(req, res) => {
-          const result = await ReviewCollection.find().toArray();
-          res.send(result);
-        });
+    app.post("/review", async (req, res) => {
+      const reviewinfo = req.body;
+      const result = await ReviewCollection.insertOne(reviewinfo);
+      res.send(result);
+    });
+    app.get("/review", async (req, res) => {
+      const result = await ReviewCollection.find().toArray();
+      res.send(result);
+    });
     app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
       const result = await BookmarksCollection.insertOne(newsinfo);
@@ -147,7 +147,7 @@ async function run() {
     });
     app.post("/bookmarks", async (req, res) => {
       const newsinfo = req.body;
-      // console.log(result);
+
       const result = await BookmarksCollection.insertOne(newsinfo);
       res.send(result);
     });
@@ -193,7 +193,7 @@ async function run() {
     // create donation
     app.post("/donation-request", verifyToken, async (req, res) => {
       const DonationRequest = req.body;
-      console.log(DonationRequest);
+
       const result = await DonationRequestCollection.insertOne(DonationRequest);
       return res.send(result);
     });
@@ -261,7 +261,6 @@ async function run() {
       res.send(result);
     });
 
-
     // donation details show
     app.get("/donation/:email", verifyToken, async (req, res) => {
       const reqemail = req.params.email;
@@ -283,7 +282,7 @@ async function run() {
     //  admin has access all donation list
     app.get("/Donation", verifyToken, verifyAdmin, async (req, res) => {
       const result = await DonationRequestCollection.find().toArray();
-      console.log(result);
+
       res.send(result);
     });
     //  news
@@ -312,7 +311,7 @@ async function run() {
     });
 
     //  get  All Pull request
-    app.get("/Show-Pull",  async (req, res) => {
+    app.get("/Show-Pull", async (req, res) => {
       const AllPUll = await PullCollection.find().toArray();
 
       res.send(AllPUll);
@@ -349,10 +348,10 @@ async function run() {
     });
     app.patch("/api/v1/jobs/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const option = { upsert: true }
+      const query = { _id: new ObjectId(id) };
+      const option = { upsert: true };
       const modifiedData = req.body;
-     
+
       const doc = {
         $set: {
           headline: modifiedData?.headline,
@@ -362,23 +361,21 @@ async function run() {
           section: modifiedData?.section,
           jobUrl: modifiedData?.jobUrl,
         },
-      }
-      const result = await JobsCollection.updateOne(query, doc, option)
-      res.send(result)
-
+      };
+      const result = await JobsCollection.updateOne(query, doc, option);
+      res.send(result);
     });
     // quiz api start
     app.get("/api/v1/quiz", async (req, res) => {
-      const result = await quizCollection.find().toArray()
-      res.send(result)
-    })
-
+      const result = await quizCollection.find().toArray();
+      res.send(result);
+    });
 
     app.post("/api/v1/quiz", async (req, res) => {
       try {
         const userAnswers = req.body;
 
-        const correctAnswers = await quizCollection.find().toArray()
+        const correctAnswers = await quizCollection.find().toArray();
 
         let correctCount = 0;
         let inCorrectCount = 0;
@@ -389,25 +386,24 @@ async function run() {
           } else {
             inCorrectCount++;
           }
-        })
+        });
         const result = await quizAnswerCollection.insertOne({
           userAnswers,
           correctCount,
           inCorrectCount,
-        })
-        res.send({ userAnswers, correctCount, inCorrectCount })
+        });
+        res.send({ userAnswers, correctCount, inCorrectCount });
       } catch (error) {
-        console.error("Error from quiz", error)
-        res.status(500).json({ error: "Internal server error from quiz" })
+        console.error("Error from quiz", error);
+        res.status(500).json({ error: "Internal server error from quiz" });
       }
-
-    })
+    });
     // quiz api end
 
     // Check Admin
     app.get("/admin/:email", verifyToken, async (req, res) => {
       const email = req.params.email;
-   
+
       const query = { Email: email };
       const user = await UserCollection.findOne(query);
 
@@ -415,7 +411,7 @@ async function run() {
       if (user?.role === "admin") {
         isAdmin = true;
       }
-    
+
       res.send({ isAdmin });
     });
 
@@ -479,7 +475,6 @@ async function run() {
       res.send(result);
     });
 
-
     // Route to update poll votes
 
     app.patch("/updatePoll/:pollId", verifyToken, async (req, res, next) => {
@@ -529,7 +524,7 @@ async function run() {
     //booksmarks delete function--------->
     app.delete("/bookmarks/:id", async (req, res) => {
       const id = req.params.id;
-   
+
       const query = {
         newsid: id,
       };
@@ -545,34 +540,33 @@ async function run() {
     app.get("/singlenews/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
-   
+
       const result = await NewsCollection.findOne(query);
 
       res.send(result);
     });
-// live Client Link set
-app.get("/live",async (req, res) => {
-  const live = await LiveLink.find().toArray();
-  res.send(live);
-});
-app.put("/live", async (req, res) => {
-  try {
-    const body = req.body;
-    const filter = { Find: body?.Find };
-    const options = { upsert: true };
-    const Link = {
-      $set: {
-        Link: body?.Link,
-        Find: body?.Find,
-      },
-    };
-    const result = await LiveLink.updateOne(filter,Link,options)
-    res.send(result);
-  } catch (error) {
-    res.status(500).send("Internal server error from post api job");
-  }
-});
-
+    // live Client Link set
+    app.get("/live", async (req, res) => {
+      const live = await LiveLink.find().toArray();
+      res.send(live);
+    });
+    app.put("/live", async (req, res) => {
+      try {
+        const body = req.body;
+        const filter = { Find: body?.Find };
+        const options = { upsert: true };
+        const Link = {
+          $set: {
+            Link: body?.Link,
+            Find: body?.Find,
+          },
+        };
+        const result = await LiveLink.updateOne(filter, Link, options);
+        res.send(result);
+      } catch (error) {
+        res.status(500).send("Internal server error from post api job");
+      }
+    });
 
     await client.connect();
     // Send a ping to confirm a successful connection
@@ -581,7 +575,6 @@ app.put("/live", async (req, res) => {
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-
   }
 }
 run().catch(console.dir);
