@@ -83,6 +83,7 @@ async function run() {
       const token = jwt.sign(user, process.env.NEWS_ACCESS_TOKEN, {
         expiresIn: "1d",
       });
+      console.log(token);
       res
         .cookie("token", token, {
           httpOnly: true,
@@ -95,6 +96,7 @@ async function run() {
     // Logout user
     app.post("/logout", async (req, res) => {
       const user = req.body;
+      console.log("logout");
       res.clearCookie("token", { maxAge: 0 }).send({ success: true });
     });
     // update a news
@@ -181,6 +183,7 @@ async function run() {
     //   Create User Section
     app.post("/users", async (req, res) => {
       const User = req.body;
+      console.log(User);
       const query = { Email: User?.Email };
       const Exitinguser = await UserCollection.findOne(query);
       if (Exitinguser) {
