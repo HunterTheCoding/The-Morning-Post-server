@@ -65,7 +65,7 @@ async function run() {
     // Verify Admin
     const verifyAdmin = async (req, res, next) => {
       const email = req.user?.email;
-      const query = { Email: email, role: "admin" };
+      const query = { Email: email };
       const user = await UserCollection.findOne(query);
       const IsAdmin = user.role === "admin";
       if (!IsAdmin) {
