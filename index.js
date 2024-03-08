@@ -69,7 +69,7 @@ async function run() {
       const user = await UserCollection.findOne(query);
       const IsAdmin = user.role === "admin";
       if (!IsAdmin) {
-        return res.status(401).send({ message: "unauthorized User" });
+        // return res.status(401).send({ message: "unauthorized User" });
       } else {
         next();
       }
